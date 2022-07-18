@@ -1,0 +1,21 @@
+name:clasification-testing-pipline
+on: [push]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container: docker://ghcr.io/iterative/cml:0-dvc2-base1
+    steps:
+      - uses: actions/checkout@v2
+      - name: Train model
+        run: |
+          # Your ML workflow goes here
+          pip install -r requirements.txt
+          dvc repro
+          git fetch --prun
+          dvc metrics diff --show-md master >report,md
+          #add figure into report
+          echo "##ROC Graph for the model"
+          cml-publish ROC.png -- md >> report.md
+          
+          #deliver info to team memmbers
+          cml-send-comment report.md
